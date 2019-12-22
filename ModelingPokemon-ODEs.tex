@@ -1,0 +1,178 @@
+\documentclass[border=1pt]{article}
+%Input the style definitions
+\input{ScienceArticlePreamble}
+
+%Document Folders
+\newcommand{\DocImagesPath}{}
+\newcommand{\DocCodesPath}{}
+
+%Bibliography
+\usepackage[style=IEEE]{biblatex}
+\bibliography{biblio-Pokemon}
+
+\pagestyle{fancy}
+
+
+%%%%%%%%%%%%Title%%%%%%%%%%%%%%%%%%%%%%%%
+\title{Modeling of PokemonGo's Population Through a MarkovModel}
+
+%%%%%%%%%%%%Authors%%%%%%%%%%%%%%%%%%%%%%
+\author[1]{Tommaso Palmieri}
+\affil[1]{\footnotesize NetID: tp1438, Email: Tommaso.Palmieri@NYU.edu}
+\author[2]{Henri Wilhelm}
+\affil[2]{Email: hpv234@nyu.edu}
+\author[3]{Nnamdi Nwaokorie}
+\author[4]{Shraman}
+\author[5]{Purav}
+
+
+%%%%%%%%%%%%Headers & Footers%%%%%%%%%%%%%%%%%
+%\lhead{}
+\chead{}
+\fancyhead[R]{Tommaso Palmieri}
+\cfoot{}
+\rfoot{Page \thepage}
+%\lfoot{Eventual left foot}
+
+
+%%%%%%%%%%%Notes%%%%%%%%%%%%%%%%%%%
+
+%%%Copyright Notices
+%\CopyrightNoticeCCBYNCSA
+%\AddCopyrightCCBYNCSA
+
+%%%Index
+%\printindex : To print the analytic index, 
+%\intex{FourierSeries} : To define an index entry within the text
+
+%%%Special Marks
+%\important  : To mark an important bit
+
+%%%Maths
+%%Theorem Environments
+%{exercise}{Exercise}
+%{theorem}{Theorem}
+%{lemma}[theorem]{Lemma}
+%{corollary}[theorem]{Corollary}
+%{definition}{Definition}
+%{proposition}{Proposition}
+%{example}{Example}
+%{remark}{Remark}
+
+%QuestionPrompt
+%QuestionAns
+
+%%%Code
+%%Environments
+%MatLab : Matlab Code - In Line: " CODE "
+%Python : Python Code - In Line: \PythonInLine{CODE}
+\begin{document}
+\maketitle
+
+\begin{center} %For class info
+	\textit{Intro to Math Modeling}\\
+	Fall 2019
+\end{center}
+
+\section{Ordinary Differential Equations Mean Field Model}
+For a very large value of $M$, the number of species, a mean-field model can be written down. Such models are defined as mean field due to their approximation of the changes (I do not know what I am saying - but re read the assignemnt, Adi doesnt seem to have either.) Let's get down to business:
+
+\subsection{Defining the Rate of Changes}
+\subsubsection*{Gains of a Population in each round}
+	$B_{nn'}$ is the probability that species $n$ will win against species $n'$, and that in such battle $n'$ will lose. This is rather essential - in our model, species which lose battle transform in the species of the winner! It is essential to note how, if we let $y_n$ be the fraction, over the total number of Pokemon, present in the system at any given time. Then, define the vector $y_n$ as shown in \autoref{eq-DefinitionOfYn}. 
+	\begin{equation}
+	\label{eq-DefinitionOfYn}
+	\vec{y}=
+		\begin{pmatrix}
+			\frac{\text{Number of Pokemon of Species a}}{\text{Total Number of Pokemon present in the system at a time}}\\
+			\frac{\text{Number of Pokemon of Species a}}{\text{Total Number of Pokemon present in the system at a time}}\\
+			\cdot\\
+			\cdot\\
+			\cdot\\
+		\end{pmatrix}
+	\end{equation}
+	In a similar fashion, do define the vector $\vec{y'}$, as our registry for the total portions of members of the population, inputted in the order according to which they will be fought by 'entries' of $\vec{y}$. Keeping in mind that we previously defined our transition matrix as $\mathbf{B}$, recall how losers transform into the species against which they lost. Let us hence calculate the number of gains which a species suffers, for a single row. 
+	
+	\begin{equation}
+		\Delta y_n = y_n \cdot \sum_{\forall n \in \vec{y}} \cdot B_{nn'} y'_{n}
+	\end{equation}
+
+
+Recall that $\mathbf{B}$ in a matrix. In simplistic terms, we are calculating the expected gains that species $n$ will obtain from each other species by calculating how much all the other species will loose against $n$. That is, (a statistician would say) we are calculating taking the expected value of the losses taken by each population of the vector $\vec{y'_n}$ in favour of the species of kind $n$. In this calculation, the probabilities of each $y_n$ being the value of the row vector $n$ of matrix $\mathbf{B}$. For short, let us call this $E[Y]$
+
+As this addition is calculated, it must be recalled that we are working in fractional (or, proportinal terms) in term of stochastic vectors and matrices. Also note that, initially, the values of the vector $\vec{y}$ and $\vec{y'}$ are equal. $E[Y_n]$ is then the \textbf{the total expected changes in the value of the single entry of $\vec{y}$.} The value obtained is a proportion, on a total of one. To get the 'absolute change' -  which in this case is still a proportion, but is based on the total member of the species of kind $n$, and not on one, we need to multiply our expected value by the proportion by which it needs to be scaled.  
+\subsubsection{Losses of a Population}
+	Now, if the same reasonment is applied as expressed above is applied by considering as inputs the probability of $n'$ beating $n$, we would easily demonstrate how the death rate of any population $n$ is to be proportional to,
+	\begin{equation}
+		-\Delta y_n= y_n \sum_{\forall n' \in y'_n} B_{n'n}y'_n
+	\end{equation}
+
+\subsubsection{The Rate of Change of $\vec{y}$}
+Let us now define the first of our ODEs. Let us define $dt$ as an infinitesimally small stretch of time. Then, over any such interval, let the changes in $y$ be defines as per \autoref{Eq-GrowthMinusDecay}
+
+\begin{eqnarray}
+\label{eq:SimpleDTWithSums}
+	&\frac{d \vec{y}}{dt}&= \text{Growth Rate} - \text{Decrease Rate}\\
+	\text{Or, plugging in the values:}& & y_n \cdot \sum_{\forall n \in \vec{y}} \cdot B_{nn'} y'_{n} -\\ 
+	& & y_n \sum_{\forall n' \in y'_n} B_{n'n}y'_n
+\end{eqnarray}
+
+\subsection{Expression of the Changes in Matrix Form}
+Our goal is now to express the equation outlined for $dt$ in \autoref{eq:SimpleDTWithSums} as a single equation, to which we will then apply some linear algebra as per simplifying the final expression of the model. 
+
+Therefore, consider the matrix $\mathbf{B}$, 
+\begin{equation}
+	\mathbf{B}=
+	\begin{pmatrix}
+		B_{11} & B_{12} & B_{13} & B{14} & \cdot & \cdot & \cdot & B_{1n'}\\
+		B_{21} & B_{22} & B_{23} & B{24} & \cdot & \cdot & \cdot & B_{2n'}\\
+		B_{31} & B_{32} & B_{33} & B{34} & \cdot & \cdot & \cdot & B_{3n'}\\
+		B_{41} & B_{42} & B_{43} & B{44} & \cdot & \cdot & \cdot & B_{4n'}\\
+		B_{n1} & B_{n2} & B_{n3} & B{n4} & \cdot & \cdot & \cdot & B_{5n'}\\
+		\cdot & \cdot & \cdot & \cdot & \cdot & \cdot & \cdot & \cdot\\
+		B_{61} & B_{62} & B_{63} & B{64} & \cdot & \cdot & \cdot & B_{NN}
+	\end{pmatrix}
+\end{equation}
+
+Recall what $\mathbf{B}$ actually represent in probabilistic terms. Any entry in position $(n, n')$ represents the probabilities of species $n'$ turning into species $n$ - in other terms, loosing with it!
+
+Now, consider the transpose of the matrix $\mathbf{B}$ - that would be, quite simply, the matrix be with the 'coordinates' of each position inverted. For example, the element in $(n, n')$ would be located, in the transverse, in $(n', n)$. More simply, the rows become columns and vice-versa. 
+
+Therefore, if we were to subtract the transverse form the original $\mathbf{B}$ matrix, we would obtain what follows: 
+
+\begin{equation}
+	\mathbf{B} - \mathbf{B}^T=
+	\begin{pmatrix}
+		B_{11}-B_{11} & \cdot & \cdot & \cdot & B_{1n'}-B_{n'1}\\
+		B_{21}-B_{12} & \cdot & \cdot & \cdot & B_{2n'}-B{n'2}\\
+		B_{31}-B_{13} & \cdot & \cdot & \cdot & B_{3n'}-B{n'3}\\
+		B_{41}-B_{14} & \cdot & \cdot & \cdot & B_{4n'}-B{n'4}\\
+		B_{n1} - B_{1n} & \cdot & \cdot & \cdot & B_{5n'}-B{n'5}\\
+		\cdot & \cdot & \cdot & \cdot & \cdot & \cdot & \cdot & \cdot\\
+	\end{pmatrix}
+\end{equation}
+
+Then, consider our expression for the change over time, that is \autoref{eq:SimpleDTWithSums}, 
+
+\begin{eqnarray}
+	\text{Recall the definition of dot product}& \vec{a} \cdot \vec{b}=\sum_{\forall n \in \vec{a, b}}(a_n b_n)\\
+	\text{Re-define the sums in the Delta Equations} & \Delta = y_n \sum_{\forall n} B_{nn'}y'_n & =y_n B_n \cdot y'_n\\
+	&-\Delta = y_n \sum_{\forall n} B_{n'n} y'_n & =y_n B_{n'} \cdot y'_n\\
+\end{eqnarray}
+
+Note how, in this case, we are thinking about a particular entry on the 'new' y vector. The single indeces of $B$ represent row indeces. 
+
+%%%%%%%%%%Appendices%%%%%%%%%%%%%%%%
+\begin{appendices}
+\renewcommand{\rightmark}{Appendix \thesection}
+
+	\begin{landscape}
+	\end{landscape}
+
+\end{appendices}
+\printindex
+\printbibliography
+\end{document}
+
+
+
