@@ -73,7 +73,65 @@
 	\textit{Intro to Math Modeling}\\
 	Fall 2019
 \end{center}
+\section{Part 1}
+Rather than defining the state-transition probabilities on this very large set of states, we’ll directly describe how our system changes state from one time-step to the next:
+\begin{itemize}
+\item Each time-step is a ‘round’, in which each organism is randomly paired with another organism. Organisms that cannot be paired get a ‘bye’ for this round.
+\item Paired organisms fight, with the victor determined randomly: if the first organism is species
+\item $ n $ and the second $ n’ $, then the victor is determined via $ Bnn ' $ and $ Bn' n $
+\item The loser dies, and the winner multiplies: In effect, the loser is replaced by a new organism of the same species as the winner.
+\end{itemize}
+\section{Simulating the Markov Model}
+Can you simulate this Markov-model? See (pokemon\_markov\_ver1.m) as a hint.
+\begin{itemize}
+\item When you run the original code as given (35 initial ghost players, 19*5 total players, 0 quit chance) – No type or group of types dominates the competition
+\item For the change of code where (35 initial ghost players, 19*431 total players, 0 quit chance) – Only water, electric, fire, or flying seem to win the competition
+\item For the change of code where (35 initial ghost players, 1024*8 total players, 0 quit chance) – Electric seems to dominate the competition
+\item For the change of code where (35 initial normal players, 19*5 total players, 0 quit chance) – No type or group of types seems to dominate the competition
+\item For the change of code where (35 initial normal players, 19*431 total players, 0 quit chance) – Only water and electric seem to win the competition consistently
+\item For the change of code where (35 initial normal players, 1024*8 total players, 0 quit chance) – Only water and electric seem to win the competition consistently
+\item For the change of code where (35 initial ground players, 1024*8 total players, 0 quit chance) – No type or group of types seems to dominate the competition
+\item Based on the report above, the results do seem to depend on the initial conditions.
+\item The results do depend on the total number of organisms, but more-so for certain initial species. When M is small, the results typically vary from trial to trail. When M is large, the results may either stay the same or just vary to a noticeably smaller degree.
+\item You can roughly measure how well each species does in each simulation (averaged across trials) as a function of M. Over a long period of time when M is small, the types of fire, water, and electric seem to dominate. Over a long period of time when M is large, the types of fire, water, and electric seem to dominate – with electric seeming to be especially dominant.
+\item The species typically driven to extinction when M is small are normal, ice, fighting, poison, ground, psychic, bug, rock, and dark!
+\item The species typically driven to extinction when M is large are normal, ice, fighting, poison, ground, psychic, bug, rock, and dark!
 
+My observations somewhat correlate with the most popular pokemon used in the game “Pokemon Go!” This is because while there were many water pokemon on the list of best pokemon which reflects how well the water type does in the model, there were very few electric types seen on the list even though the electric was the most dominant type in the model.
+\end{itemize}
+\section{Introducing a Quitting Chance}
+Now let’s change the rules of the Markov-model a little bit. Let’s introduce a small ‘quit chance’ q(typically q ~ 0.01 or smaller) which represents the probability that, after any given round, any particular organism ‘quits’ and picks a new species. This time our system changes like this (steps 1-3 are the same as before):
+
+\begin{itemize}
+\item Each time-step is a ‘round’, in which each organism is randomly paired with another organism. Organisms that cannot be paired get a ‘bye’ for this round.
+\item Paired organisms fight, with the victor determined randomly: if the first organism is species n and the second n’, then the victor is determined via Bnn' and Bn' n .
+\item The loser dies, and the winner multiplies: In effect, the loser is replaced by a new organism of the same species as the winner. 
+\item Before the next round starts each organism has a chance q > 0 of quitting, and randomly drawing its new species from the N = 19 possibilities.
+\end{itemize}
+
+\subsection{Guessing What Is Going to Happen}
+\textbf{Either}: Now that organisms can switch species randomly (i.e., now that q > 0), the evolution of the system will look even more wild! I predict that the dominant-species observed from trial to trial will be even more variable now (i.e., when q > 0) than before (when q = 0).
+\textbf{Or:} Now that organisms can switch species randomly, the evolution of the system will be far simpler! I predict that the results of each trial will be even more similar now (when q > 0) than than before (when q = 0).
+\textbf{My Guess:} I guess the first option will occur – That the evolution of the system will look even more wild and the dominant species observed from trial to trial will become even more variable.
+\subsection{How did we achieve such a guess?}
+Question: Why did you make the guess that you did?
+Answer: The reason I guessed that the evolution of the system will look even more wild is because we are adding in another parameter/factor that will allow the organisms to change their species/types.
+Question: Can you explain your reasoning?
+Answer: I reasoned that allowing the organisms to change due to an additional factor would cause even more variability in the dominant species observed from trial to trial.
+Question: What does your intuition tell you?
+Answer: My intuition tells me that the more factors that allow for the changing of species, the more wild and variable the system becomes.
+Question: Now can you simulate this new modified-Markov-model?
+Answer: This new modified-Markov-model can be simulated.
+
+The dynamics differ from the original model in that the new model with q = 0.01 has very wild oscillations while the old model has calmer/smoother oscillations! Although, for large values of M it seems as if both the models are somewhat similar except for their ends:
+
+If the quit-chance is small $(e \cdot g, q \lesssim 0.001)$, the new model seems to be quite similar to the original model:
+
+If the quit-chance is high (e.g., $\mathrm{q} \sim 0.1$ or higher), the model becomes very messy and oscillates heavily when compared to the original model which had quit-chance of zero:
+
+It should also be noted that when a large M is used for the model with a quit-chance of 0.1, the winning type is observed to almost always be steel.
+
+The explanation for these differences is that the quit-chance’s presence in the model introduces an additional level of randomness into the equation. This “additional level of randomness” specifically refers to the chance that an organism will mutate from one species to another, causing the number of any species in the total population to change more frequently and randomly over time.
 \section{Ordinary Differential Equations Mean Field Model}
 For a very large value of $M$, the number of species, a mean-field model can be written down. Such models are defined as mean field due to their approximation of the changes (I do not know what I am saying - but re read the assignemnt, Adi doesnt seem to have either.) Let's get down to business:
 
@@ -162,6 +220,61 @@ Then, consider our expression for the change over time, that is \autoref{eq:Simp
 
 Note how, in this case, we are thinking about a particular entry on the 'new' y vector. The single indeces of $B$ represent row indeces. 
 
+\subsection{Why is the population conserved?}
+The total population $\sum_{n} y_{n}(t)_{\text {is conserved }}$ In other words, 
+\begin{equation}
+\frac{d}{d t}\left[\sum_{n} y_{n}(t)\right]=0
+\end{equation}
+This is because every time species $n$ is defeated, it will convert to species $n^{\prime }$ Essentially, this will result in a system where the total population is not growing or decaying since every time an organism dies, another is created. And every time an organism is created, one dies. Thus overall, death and growth have a 1: 1 relationship.
+
+\subsection{Simulating the Mean Field Model}
+Now can you simulate the mean-field model from question number 3 above? See
+pokemon\_ode\_ver1.m as a hint. 
+
+The results do not seem to depend on the initial conditions. 
+
+The electric and flying type species typically dominate. Although the electric types seems to dominate the most! The fighting, dark, poison, normal, psychic, and bug type species are typically driven to extinction. No equilibrium could be found for this ODE. 
+
+In order for the results of the Markov-model to ‘match’ the results of the mean-field model, the M should be at least 75,000! At 75,000 or greater, the Markov-model produces the same winning species result – electric dominating most of the competition. In addition, at M >= 75,000, the Markov-model also drives to extinction the same types of species: fighting, dark, poison, normal, psychic, and bug. Thus, the competition and/or variation between the species seems roughly similar. Note that in the Markov-model, the initial 35 players were set to the type of ghost
+
+\subsection{Re-Introducing the Quit Chance}
+Now let's allow organisms to quit: as before, we'll introduce a quitting probability q, during time $\Delta t,$ we expect $q \Delta t$ of the population to quit and then randomly pick a new species (from the N possible choices).
+
+Then, the rate at which the population $y_n$decreases due to organisms quitting is given by $-q y_{n}$. This is because the fraction of the population associated with species n ( yn) is being multiplied by the probability that, after any given round, any particular organism ‘quits’ and picks a new species (q). This results in a product that is the rate at which the fraction of the population associated with species n is quitting and mutating. This product is then multiplied by -1 to represent that this a reductive quantity that takes away from the total fraction of the population associated with species n.
+
+Furthermore, The rate at which population $y_n$ increases due to organisms picking a new species (after quitting) is given by:
+\begin{equation}
+\frac{+1}{N} \sum_{n=1}^{N} q y_{n}
+\end{equation}
+
+This is because the fraction of the population associated with species $n \prime y_{n \prime}$  is being multiplied by the probability that, after any given round, any particular organism ‘quits’ and picks a new species (q). This results in a product that is the rate at which the fraction of the population associated with species n’ is quitting and mutating. A summation of this resulting product for all every type (N being the total number of types) of species is made to represent the total quitting chance for all types of species. Then this summation is divided by N because a quitting species mutates randomly and could become any N other species.\footnote{Technically, it should be any other (N - 1) type of species since N is the total number of types, including the type that species n currently is} Thus, on average a species of a particular type would gain 1/N times the total number of species n’ that quit.
+
+The rate at which the population changes is now given by:
+\begin{equation}
+\frac{d}{d t} y_{n}(t)=G(\vec{y}, q)=[F(\vec{y})]_{n}+[q Z \cdot \vec{y}]_{n} \text { where }
+\end{equation}
+\begin{equation}
+[F(\vec{y})]_{n}=y_{n} \cdot\left(B-B^{\top}\right) \vec{y}, \text { and }
+\end{equation}
+\begin{equation}
+Z=\frac{1}{N} \overrightarrow{1} \overrightarrow{1}^{\mathrm{T}}-I_{N \times N}=\frac{1}{19}\left[\begin{array}{ccc}{1-19} & {1} & {\cdots} \\ {1} & {1-19} & {\cdots} \\ {\vdots} & {\vdots} & {\ddots} \\ {1} & {1} & {\cdots}\end{array}\right]
+\end{equation}
+where $\overrightarrow{1}$ refers to the $N \times 1$ vector of all ones.
+
+This is because the above equation is simply a combination of the total change the population undergoes due to changes caused by (1) it’s species of type n winning and losing battles and (2) species of type n and n’ quitting and then randomly mutating to another species.
+
+\subsection{MatLab SImulation of the Mean Field Model, with a Quit Chance}
+The results of the modified-Markov-model match the results of this modified-mean-field model when the quit-chance (q) for the modified-Markov-model is around 0.01, the population (M) for the modified-Markov-model is around 8000, the initial 35 players/organisms of the population for the modified-Markov-model is set the type of “normal,” and the quit-chance (q) for the modified-mean-field-model is around 0.1. When the conditions above are met, you see that both models have the same dominant species of the type water (although for the modified-mean-field-model, the water species tends to dominant quite often as well) and both have the same group of losing species that are usually driven to extinction: psychic, bug, poison, and ice.
+
+When q ~ 0.1 or larger for the modified-mean-field-model, water becomes the dominant species and the species typically driven to extinction are poison, psychic, bug, and ice. In addition, the resulting graph is somewhat sporadic at the very beginning, but relatively calm to the end. When q ~ 0.001 or smaller, these dynamics noticeably change. The new dominant species becomes electric although water does seem to always come in third place. In addition, the all the same species are still usually driven to extinction with the exception of ice (which is still not a dominant species either way) and with the addition of the fighting type to the list of the usually extinct. The most change is seen with the resulting graph, which is now incredibly sporadic and wavy from beginning to end. This is allow shown in the graphs below.
+
+You can find equilibrium points for this ODE when q > 0! The equilibrium points seem to be stable when the value of q is not changing and remains consistent.
+
+First imagine that we have some (yet unknown) equilibrium $\bar{y}$. Recall that the original ODE (with $q=0$) linearized about that equilibrium looks like:
+\begin{equation}
+\frac{d}{d t} \widetilde{y}(t)=D F(\bar{y}) \cdot \widetilde{y}
+\end{equation}
+\subsection{Liniarizing the ODE near Equilibrium}
 %%%%%%%%%%Appendices%%%%%%%%%%%%%%%%
 \begin{appendices}
 \renewcommand{\rightmark}{Appendix \thesection}
